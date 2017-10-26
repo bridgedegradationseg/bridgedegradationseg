@@ -30,6 +30,10 @@ def extract_patches(imgpath, outpath, patch_size):
             subpatch.save(os.path.join(outpath,str(r)+'_'+str(c)+'.png'))
 
 
+def substract_channel_mean(X):
+    # This is for a train shape of (numsamples, rows, cols, channels)
+    return X - X.mean(axis=(0,-3,-2), keepdims=True)
+
 def main():
     datapath = sys.argv[1]
     patch_size = int(sys.argv[2])
