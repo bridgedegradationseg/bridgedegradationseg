@@ -10,11 +10,10 @@ if __name__ == '__main__':
     datapath = sys.argv[1]
     data_augmentation = False
     # By default we don't perform data augmentation for initial test
-    if len(sys.argv) > 2:
-        data_augmentation = sys.argv[2]
+    epochs = sys.argv[2]
 
 
-    params = {'num_clases' : 2, 'epochs' : 1}
+    params = {'num_clases' : 2, 'epochs' : epochs}
     # Load data
     data_dict, train_set_idcs, test_set_idcs, x_train, y_train, x_test, y_test = bridge.load_data(datapath)
     y_train = keras.utils.to_categorical(y_train, params['num_clases'])
@@ -33,3 +32,4 @@ if __name__ == '__main__':
                   metrics=['acc'])
     weights = {0 : 1, 1 : 10}
     model.fit(x_train, y_train, epochs=params['epochs'], class_weight=weights)
+    model.evaluate(x_test,y_test,verbose=1)
