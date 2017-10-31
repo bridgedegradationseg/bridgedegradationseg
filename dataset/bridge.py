@@ -2,10 +2,10 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 import numpy as np
 import os
+import sys
 
 
-def load_data(percent_of_damage=0.2):
-    root_dir = '/src/workspace/dataset/'
+def load_data(root_dir, percent_of_damage=0.2):
     dataset = 'bridge_masks_patches/'
     patch_dir = '100/'
     deck_dirs = ['deck_a/', 'deck_c/', 'deck_d/', 'deck_e/']
@@ -19,39 +19,50 @@ def load_data(percent_of_damage=0.2):
             image_names = sorted(
                 os.listdir(os.path.join(mask_fpath, image_dir))
             )
+            data_dict[img_id] = {}
             for image_name in image_names:
                 img_fpath = os.path.join(
                     root_dir,
                     'images_patches',
                     patch_dir,
                     deck_dir
-                )
+               )
                 img_path = os.path.join(img_fpath, image_dir, image_name)
                 mask_path = os.path.join(mask_fpath, image_dir, image_name)
-                img = np.asarray(Image.open(img_path))
                 mask = np.asarray(Image.open(mask_path))
                 damage_pixels = (mask / 255).sum()
                 if damage_pixels > percent_of_damage * mask.size:
                     label = 1
                 else:
                     label = 0
-                data_dict[img_id] = {'path' : img_path, 'mask_path' : mask_path,
-                                'img' : img, 'mask' : mask, 'label' : label }
-                img_id += 1
-
+                data_dict[img_id][image_name.split('.')[0]] = {'path' : img_path, 'mask_path' : mask_path,
+                                'label' : label }
+            img_id += 1
+            
     train_set_idcs, test_set_idcs = train_test_split(list(data_dict.keys()), test_size=0.33)
 
     x_train = []
     y_train = []
     for idx in train_set_idcs:
-        x_train.append(data_dict[idx]['img'])
-        y_train.append(data_dict[idx]['label'])
+        for key in data_dict[idx].keys():
+            
+            img = np.asarray(Image.open(data_dict[idx][key]['path']))
+            x_train.append(img)
+            
+            label = np.asarray(data_dict[idx][key]['label'])
+            y_train.append(label)
 
     x_test = []
     y_test = []
     for idx in test_set_idcs:
-        x_test.append(data_dict[idx]['img'])
-        y_test.append(data_dict[idx]['label'])
+        
+        for key in data_dict[idx].keys():
+            
+            img = np.asarray(Image.open(data_dict[idx][key]['path']))
+            x_test.append(img)
+            
+            label = np.asarray(data_dict[idx][key]['label'])
+            y_test.append(label)
 
     x_train = np.array(x_train)
     x_test = np.array(x_test)
