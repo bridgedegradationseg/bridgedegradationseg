@@ -6,7 +6,7 @@ import keras
 from keras.preprocessing.image import ImageDataGenerator
 
 #carefull, the samples will be ordered after this
-#num_samples_factor = 2.0 means we will have twice as many samples of class class_label
+#num_samples_factor = 2 means we will have twice as many samples of class class_label
 def augment_set(x_samples, y_samples, num_samples_factor = 2.0, class_label = 1):
     
     if x_samples.shape[0] != y_samples.shape[0]:
@@ -40,12 +40,18 @@ def augment_set(x_samples, y_samples, num_samples_factor = 2.0, class_label = 1)
     x_augmented[0:x_remainder.shape[0],...] = x_remainder
     y_augmented[0:y_remainder.shape[0],...] = y_remainder
     
+    #you could set batchsize to num_samples_to_draw, but that might be a way higher than the developers probalby had in mind when writing the function, so it might cause problems
     batchsize = 32
     i=0
     offset = x_remainder.shape[0]
-    for x_batch, y_batch in datagen.flow(x_myclass, y_myclass, batch_size=batchsize*2):
-        x_augmented[offset+i : offset+i+batchsize, ...] = x_batch
-        y_augmented[offset+i : offset+i+batchsize, ...] = y_batch
+    for x_batch, y_batch in datagen.flow(x_myclass, y_myclass, batch_size=batchsize):
+        if x_batch.shape[0] == batchsize:
+            x_augmented[offset+i : offset+i+x_batch.shape[0], ...] = x_batch
+            y_augmented[offset+i : offset+i+y_batch.shape[0], ...] = y_batch
+        else:
+            print('unexpected batchsize: ' , x_batch.shape[0] , ' instead of ' , batchsize , '  i: ' , i , 'numsamplestodraw: ' , num_samples_to_draw ,'\n')
+            x_augmented[offset+i : offset+i+x_batch.shape[0], ...] = x_batch
+            y_augmented[offset+i : offset+i+y_batch.shape[0], ...] = y_batch
         i += 1
         if i >= int(num_samples_to_draw/batchsize):
             break
