@@ -34,6 +34,8 @@ def augment_set(x_samples, y_samples, num_runs_to_add = 1, class_label = 1):
     fill_mode='reflect',
     preprocessing_function=None) # maybe include the strech histogram here
 
+    #using seed=42 makes the augmentations be the same each time this function is called (at least i think so)
+    #so its like we are using a saved, larger set
     datagen.fit(x_myclass, augment=True, seed=42)
     
     #now iterate trough all samples of class_label num_runs_to_add times
