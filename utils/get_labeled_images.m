@@ -1,14 +1,14 @@
 clear all
-addpath('/<your-path>/LabelMeToolbox/main')
-addpath('/<your-path>/LabelMeToolbox/XMLtools')
-addpath('/<your-path>/LabelMeToolbox/utils')
-addpath('/<your-path>/LabelMeToolbox/querytools')
-addpath('/<your-path>/LabelMeToolbox/3Dtools')
-addpath('/<your-path>/LabelMeToolbox/imagemanipulation')
+addpath('/home/deeplearning/teera/LabelMeToolbox/main')
+addpath('/home/deeplearning/teera/LabelMeToolbox/XMLtools')
+addpath('/home/deeplearning/teera/LabelMeToolbox/utils')
+addpath('/home/deeplearning/teera/LabelMeToolbox/querytools')
+addpath('/home/deeplearning/teera/LabelMeToolbox/3Dtools')
+addpath('/home/deeplearning/teera/LabelMeToolbox/imagemanipulation')
 
-HOMEIMAGES = '/<your-path>/bridge/images'; % you can set here your default folder
-HOMEANNOTATIONS = '/<your-path>/bridge/annotations'; % you can set here your default folder
-OP_ANNOTATIONS = '/<your-path>/bridge/annotations/temp';
+HOMEIMAGES = '/home/deeplearning/teera/bridge_dataset'; % you can set here your default folder
+HOMEANNOTATIONS = '/home/deeplearning/teera/bridge_annotations/'; % you can set here your default folder
+OP_ANNOTATIONS = '/home/deeplearning/teera/bridge_masks';
 
 D = LMdatabase(HOMEANNOTATIONS);
 relativearea = LMlabeledarea(D);
@@ -20,14 +20,31 @@ Nimages = length(D);
 for ndx = 1:Nimages
     annotation = D(ndx).annotation;
     [mask, class] = LMobjectmask(annotation, HOMEIMAGES);
-    m = zeros(size(mask,1), size(mask,2));
-    damage_class = ["crack_caused_by_corrosion", "delamination", "rebar_exposure"];
+    m = zeros(size(mask,1), size(mask,2), 3);
     class_name = {annotation.object.name};
     for c = 1:length(class_name)
-        if any(strcmp(damage_class, class_name{c}))
-            m = m + mask(:,:,c);
-        end 
+        colored_mask = cat(3, mask(:,:,c), mask(:,:,c), mask(:,:,c));
+        % if strcmp(class_name{c}, "deck")
+        %     gray_mask = mask(:,:,c)*0.5;
+        %     gray_mask_rgb = cat(3, gray_mask, gray_mask, gray_mask);
+        %     m = m + gray_mask_rgb;
+        if strcmp(class_name{c}, "delamination")
+            % yellow
+            colored_mask(:,:,3)=0;
+            m = m + colored_mask;
+        elseif strcmp(class_name{c}, "rebar_exposure")
+            % red
+            colored_mask(:,:,2)=0;
+            colored_mask(:,:,3)=0;
+            m = m + colored_mask;
+        % elseif strcmp(class_name{c}, "crack_caused_by_corrosion")
+        %     % blue
+        %     colored_mask(:,:,1)=0;
+        %     colored_mask(:,:,2)=0;
+        %     m = m + colored_mask;
+        end
     end
-    write_dir = fullfile(OP_ANNOTATIONS, D(ndx).annotation.folder, [D(ndx).annotation.filename(1:end-4) '.jpg']);
+    write_dir = fullfile(OP_ANNOTATIONS, D(ndx).annotation.folder, [D(ndx).annotation.filename(1:end-4) '.png']);
     imwrite(m, write_dir)
 end
+
