@@ -27,10 +27,9 @@ def is_easy(img, label):
     	return True
 
     #check opencv version
-    (major, minor, _) = cv2.__version__.split(".")
-    if major == 3:
+    if cv2.__version__.split(".")[0] == '3':
         imgbin, contours, hierarchy = cv2.findContours(imgbin, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
-    else if major == 2:
+    elif cv2.__version__.split(".")[0] == '2'::
     	contours, hierarchy = cv2.findContours(imgbin, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
     else:
     	print("opencv version is fucked up")
@@ -53,7 +52,7 @@ def is_easy(img, label):
 
 def separate_dataset():
 
-    root_path = '/home/teera/'
+    root_path = '/home/deeplearning/teera/'
     mask_path = 'bridge_masks/'
     decks = ['deck_a/', 'deck_c/', 'deck_d/', 'deck_e/']
 
