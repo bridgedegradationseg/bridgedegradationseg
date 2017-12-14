@@ -24,10 +24,6 @@ for ndx = 1:Nimages
     class_name = {annotation.object.name};
     for c = 1:length(class_name)
         colored_mask = cat(3, mask(:,:,c), mask(:,:,c), mask(:,:,c));
-        % if strcmp(class_name{c}, "deck")
-        %     gray_mask = mask(:,:,c)*0.5;
-        %     gray_mask_rgb = cat(3, gray_mask, gray_mask, gray_mask);
-        %     m = m + gray_mask_rgb;
         if strcmp(class_name{c}, "delamination")
             % yellow
             colored_mask(:,:,3)=0;
@@ -36,12 +32,11 @@ for ndx = 1:Nimages
             % red
             colored_mask(:,:,2)=0;
             colored_mask(:,:,3)=0;
-            m = m + colored_mask;
-        % elseif strcmp(class_name{c}, "crack_caused_by_corrosion")
-        %     % blue
-        %     colored_mask(:,:,1)=0;
-        %     colored_mask(:,:,2)=0;
-        %     m = m + colored_mask;
+            for idx = 1:numel(m)
+                if (colored_mask(idx) ~= 0)
+                    m(idx) = colored_mask(idx);
+                end
+            end
         end
     end
     write_dir = fullfile(OP_ANNOTATIONS, D(ndx).annotation.folder, [D(ndx).annotation.filename(1:end-4) '.png']);
