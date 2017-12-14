@@ -15,7 +15,7 @@ def is_easy(img, label):
 
 
     labels = {'delamination': 226, 'corrosion': 76}  #other values that exist int the "raw" masks 166, 241, 'deck': 128, 
-    area_thresholds = {'delamination': 2000, 'corrosion': 1} #if the largest damage area is smaller than this it will be considered hard
+    area_thresholds = {'delamination': 2000, 'corrosion': 600} #if the largest damage area is smaller than this it will be considered hard
 
     imggray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     ret,imgbin = cv2.threshold(imggray,labels[label]-1,255,cv2.THRESH_TOZERO)
@@ -26,7 +26,14 @@ def is_easy(img, label):
     if np.unique(imgbin).shape == (1,): #this damage type is not present, therefore easy
     	return True
 
-    imgbin, contours, hierarchy = cv2.findContours(imgbin, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
+    #check opencv version
+    (major, minor, _) = cv2.__version__.split(".")
+    if major == 3:
+        imgbin, contours, hierarchy = cv2.findContours(imgbin, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
+    else if major == 2:
+    	contours, hierarchy = cv2.findContours(imgbin, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
+    else:
+    	print("opencv version is fucked up")
 
     contour_areas = np.zeros(len(contours))
 
@@ -45,31 +52,40 @@ def is_easy(img, label):
 
 
 def separate_dataset():
-    pixel_threshold = 1600
 
-    root_path = '/home/bridgedegradation/repos/bridgedegradationseg/dataset/'
-    mask_path = 'easy_bridge_masks/'
+    root_path = '/home/teera/'
+    mask_path = 'bridge_masks/'
     decks = ['deck_a/', 'deck_c/', 'deck_d/', 'deck_e/']
+
+    delamination_hard_file = open('{}{}delamination_hard.txt'.format(root_path, mask_path), 'w')
+    delamination_easy_file = open('{}{}delamination_easy.txt'.format(root_path, mask_path), 'w')
+    corrosion_hard_file = open('{}{}corrosion_hard.txt'.format(root_path, mask_path), 'w')
+    corrosion_easy_file = open('{}{}corrosion_easy.txt'.format(root_path, mask_path), 'w')
 
     for deck in decks:
         os.chdir('{}{}{}'.format(root_path, mask_path, deck))
         for image in glob.glob('*.png'):
             img = cv2.imread('{}{}{}{}'.format(root_path, mask_path, deck, image))
 
-            im = Image.open('{}{}{}{}'.format(root_path, mask_path, deck, image))#open it again with pillow for easy saving
-
             if is_easy(img, 'delamination') == False:
-                print('{}{} is hard because of delamination\n'.format(deck, image))
-                save_path = '{}{}{}'.format( root_path,'new_hard_bridge_masks/', deck)
-                im.save('{}{}'.format(save_path, image))
+                print('{}{} is hard for delamination'.format(deck, image))
+                delamination_hard_file.write('{}{}\n'.format(deck, image))
+                
             else:
-                save_path = '{}{}{}'.format( root_path,'new_easy_bridge_masks/', deck)
-                im.save('{}{}'.format(save_path, image))
+            	print('{}{} is easy for delamination'.format(deck, image))
+                delamination_easy_file.write('{}{}\n'.format(deck, image))
 
 
-            #if is_easy(img, 'corrosion') == False:
-                #print('{}{} is hard because of corrosion\n'.format(deck, image))
-                   
+            if is_easy(img, 'corrosion') == False:
+                print('{}{} is hard for corrosion'.format(deck, image))
+                corrosion_hard_file.write('{}{}\n'.format(deck, image))
+                
+            else:
+            	print('{}{} is easy for corrosion'.format(deck, image))
+                corrosion_easy_file.write('{}{}\n'.format(deck, image))
+
+
+
             
             
             
@@ -78,20 +94,3 @@ def separate_dataset():
 if __name__ == '__main__':
     separate_dataset()
 
-
-"""
-if is_easy:
-save_path = '{}{}{}'.format(
-    root_path,
-    'easy_bridge_masks/',
-    deck
-)
-im.save('{}{}'.format(save_path, image))
-else:
-save_path = '{}{}{}'.format(
-    root_path,
-    'hard_bridge_masks/',
-    deck
-)
-im.save('{}{}'.format(save_path, image))
-"""
