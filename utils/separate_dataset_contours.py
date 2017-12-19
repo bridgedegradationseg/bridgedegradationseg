@@ -29,7 +29,7 @@ def is_easy(img, label):
     #check opencv version
     if cv2.__version__.split(".")[0] == '3':
         imgbin, contours, hierarchy = cv2.findContours(imgbin, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
-    elif cv2.__version__.split(".")[0] == '2'::
+    elif cv2.__version__.split(".")[0] == '2':
     	contours, hierarchy = cv2.findContours(imgbin, cv2.RETR_EXTERNAL , cv2.CHAIN_APPROX_SIMPLE)
     else:
     	print("opencv version is fucked up")
@@ -52,7 +52,8 @@ def is_easy(img, label):
 
 def separate_dataset():
 
-    root_path = '/home/deeplearning/teera/'
+    #root_path = '/home/deeplearning/teera/'
+    root_path = '/home/bridgedegradation/repos/bridgedegradationseg/dataset/'
     mask_path = 'bridge_masks/'
     decks = ['deck_a/', 'deck_c/', 'deck_d/', 'deck_e/']
 
@@ -60,28 +61,60 @@ def separate_dataset():
     delamination_easy_file = open('{}{}delamination_easy.txt'.format(root_path, mask_path), 'w')
     corrosion_hard_file = open('{}{}corrosion_hard.txt'.format(root_path, mask_path), 'w')
     corrosion_easy_file = open('{}{}corrosion_easy.txt'.format(root_path, mask_path), 'w')
+    all_hard_file = open('{}{}all_hard.txt'.format(root_path, mask_path), 'w')
+    all_easy_file = open('{}{}all_easy.txt'.format(root_path, mask_path), 'w')
+
+    corrosion_easy_count = 0
+    corrosion_hard_count = 0
+    delamination_easy_count = 0
+    delamination_hard_count = 0
+    all_easy_count = 0
+    all_hard_count = 0
 
     for deck in decks:
         os.chdir('{}{}{}'.format(root_path, mask_path, deck))
         for image in glob.glob('*.png'):
             img = cv2.imread('{}{}{}{}'.format(root_path, mask_path, deck, image))
 
+            all_easy = True
+            all_hard = True
+
             if is_easy(img, 'delamination') == False:
-                print('{}{} is hard for delamination'.format(deck, image))
+                #print('{}{} is hard for delamination'.format(deck, image))
+                delamination_hard_count += 1
                 delamination_hard_file.write('{}{}\n'.format(deck, image))
+                all_easy = False
                 
             else:
-            	print('{}{} is easy for delamination'.format(deck, image))
+                #print('{}{} is easy for delamination'.format(deck, image))
+                delamination_easy_count += 1
                 delamination_easy_file.write('{}{}\n'.format(deck, image))
+                all_hard = False
 
 
             if is_easy(img, 'corrosion') == False:
-                print('{}{} is hard for corrosion'.format(deck, image))
+                #print('{}{} is hard for corrosion'.format(deck, image))
+                corrosion_hard_count += 1
                 corrosion_hard_file.write('{}{}\n'.format(deck, image))
+                all_easy = False
                 
             else:
-            	print('{}{} is easy for corrosion'.format(deck, image))
+                #print('{}{} is easy for corrosion'.format(deck, image))
+                corrosion_easy_count += 1
                 corrosion_easy_file.write('{}{}\n'.format(deck, image))
+                all_hard = False
+
+
+            if all_easy:
+                all_easy_count += 1
+                all_easy_file.write('{}{}\n'.format(deck, image))
+
+            if all_hard:
+                all_hard_count += 1
+                all_hard_file.write('{}{}\n'.format(deck, image))
+
+
+    print("Delamintaion: {} hard, {} easy. Corrosion: {} hard, {} easy.    {} are easy for both. {} are hard for both.\n".format(delamination_hard_count, delamination_easy_count, corrosion_hard_count, corrosion_easy_count, all_easy_count, all_hard_count))
 
 
 
