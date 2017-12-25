@@ -79,6 +79,9 @@ def separate_dataset():
             all_easy = True
             all_hard = True
 
+            #remove the .png from the string
+            image = image.replace(".png", "")
+
             if is_easy(img, 'delamination') == False:
                 #print('{}{} is hard for delamination'.format(deck, image))
                 delamination_hard_count += 1
