@@ -52,8 +52,8 @@ def is_easy(img, label):
 
 def separate_dataset():
 
-    #root_path = '/home/deeplearning/teera/'
-    root_path = '/home/bridgedegradation/repos/bridgedegradationseg/dataset/'
+    root_path = '/home/deeplearning/teera/'
+    #root_path = '/home/bridgedegradation/repos/bridgedegradationseg/dataset/'
     mask_path = 'bridge_masks/'
     decks = ['deck_a/', 'deck_c/', 'deck_d/', 'deck_e/']
 
